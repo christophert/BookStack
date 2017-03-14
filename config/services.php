@@ -80,6 +80,7 @@ return [
         'user_filter' => env('LDAP_USER_FILTER', '(&(uid=${user}))'),
         'version' => env('LDAP_VERSION', false),
         'email_attribute' => env('LDAP_EMAIL_ATTRIBUTE', 'mail'),
+        'name_attribute' => env('LDAP_NAME_ATTRIBUTE', 'cn')
     ]
 
 ];

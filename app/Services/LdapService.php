@@ -42,13 +42,14 @@ class LdapService
         $userFilter = $this->buildFilter($this->config['user_filter'], ['user' => $userName]);
         $baseDn = $this->config['base_dn'];
         $emailAttr = $this->config['email_attribute'];
-        $users = $this->ldap->searchAndGetEntries($ldapConnection, $baseDn, $userFilter, ['cn', 'uid', 'dn', $emailAttr]);
+        $nameAttr = $this->config['name_attribute'];
+        $users = $this->ldap->searchAndGetEntries($ldapConnection, $baseDn, $userFilter, [$nameAttr, 'uid', 'dn', $emailAttr]);
         if ($users['count'] === 0) return null;
 
         $user = $users[0];
         return [
             'uid'   => (isset($user['uid'])) ? $user['uid'][0] : $user['dn'],
-            'name'  => $user['cn'][0],
+            'name'  => (isset($user[$nameAttr])) ? (is_array($user[$nameAttr]) ? $user[$nameAttr][0] : $user[$nameAttr]) : null,
             'dn'    => $user['dn'],
             'email' => (isset($user[$emailAttr])) ? (is_array($user[$emailAttr]) ? $user[$emailAttr][0] : $user[$emailAttr]) : null
         ];
