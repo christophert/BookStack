@@ -16,7 +16,7 @@ class DummyContentSeeder extends Seeder
         $user->attachRole($role);
 
 
-        $books = factory(\BookStack\Book::class, 20)->create(['created_by' => $user->id, 'updated_by' => $user->id])
+        factory(\BookStack\Book::class, 20)->create(['created_by' => $user->id, 'updated_by' => $user->id])
             ->each(function($book) use ($user) {
                 $chapters = factory(\BookStack\Chapter::class, 5)->create(['created_by' => $user->id, 'updated_by' => $user->id])
                     ->each(function($chapter) use ($user, $book){
@@ -28,7 +28,13 @@ class DummyContentSeeder extends Seeder
                 $book->pages()->saveMany($pages);
             });
 
-        $restrictionService = app(\BookStack\Services\PermissionService::class);
-        $restrictionService->buildJointPermissions();
+        $largeBook = factory(\BookStack\Book::class)->create(['name' => 'Large book' . str_random(10), 'created_by' => $user->id, 'updated_by' => $user->id]);
+        $pages = factory(\BookStack\Page::class, 200)->make(['created_by' => $user->id, 'updated_by' => $user->id]);
+        $chapters = factory(\BookStack\Chapter::class, 50)->make(['created_by' => $user->id, 'updated_by' => $user->id]);
+        $largeBook->pages()->saveMany($pages);
+        $largeBook->chapters()->saveMany($chapters);
+
+        app(\BookStack\Services\PermissionService::class)->buildJointPermissions();
+        app(\BookStack\Services\SearchService::class)->indexAllEntities();
     }
 }

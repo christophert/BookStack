@@ -4,7 +4,7 @@
 class Entity extends Ownable
 {
 
-    protected $fieldsToSearch = ['name', 'description'];
+    public $textField = 'description';
 
     /**
      * Compares this entity to another given entity.
@@ -66,6 +66,15 @@ class Entity extends Ownable
     }
 
     /**
+     * Get the related search terms.
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     */
+    public function searchTerms()
+    {
+        return $this->morphMany(SearchTerm::class, 'entity');
+    }
+
+    /**
      * Get this entities restrictions.
      */
     public function permissions()
@@ -83,17 +92,6 @@ class Entity extends Ownable
     {
         return $this->permissions()->where('role_id', '=', $role_id)
             ->where('action', '=', $action)->count() > 0;
-    }
-
-    /**
-     * Check if this entity has live (active) restrictions in place.
-     * @param $role_id
-     * @param $action
-     * @return bool
-     */
-    public function hasActiveRestriction($role_id, $action)
-    {
-        return $this->getRawAttribute('restricted') && $this->hasRestriction($role_id, $action);
     }
 
     /**
@@ -153,67 +151,25 @@ class Entity extends Ownable
     }
 
     /**
-     * Perform a full-text search on this entity.
-     * @param string[] $fieldsToSearch
-     * @param string[] $terms
-     * @param string[] array $wheres
+     * Get the body text of this entity.
      * @return mixed
      */
-    public function fullTextSearchQuery($terms, $wheres = [])
+    public function getText()
     {
-        $exactTerms = [];
-        $fuzzyTerms = [];
-        $search = static::newQuery();
-
-        foreach ($terms as $key => $term) {
-            $term = htmlentities($term, ENT_QUOTES);
-            $term = preg_replace('/[+\-><\(\)~*\"@]+/', ' ', $term);
-            if (preg_match('/&quot;.*?&quot;/', $term) || is_numeric($term)) {
-                $term = str_replace('&quot;', '', $term);
-                $exactTerms[] = '%' . $term . '%';
-            } else {
-                $term = '' . $term . '*';
-                if ($term !== '*') $fuzzyTerms[] = $term;
-            }
-        }
-
-        $isFuzzy = count($exactTerms) === 0 && count($fuzzyTerms) > 0;
-
-
-        // Perform fulltext search if relevant terms exist.
-        if ($isFuzzy) {
-            $termString = implode(' ', $fuzzyTerms);
-            $fields = implode(',', $this->fieldsToSearch);
-            $search = $search->selectRaw('*, MATCH(name) AGAINST(? IN BOOLEAN MODE) AS title_relevance', [$termString]);
-            $search = $search->whereRaw('MATCH(' . $fields . ') AGAINST(? IN BOOLEAN MODE)', [$termString]);
-        }
-
-        // Ensure at least one exact term matches if in search
-        if (count($exactTerms) > 0) {
-            $search = $search->where(function ($query) use ($exactTerms) {
-                foreach ($exactTerms as $exactTerm) {
-                    foreach ($this->fieldsToSearch as $field) {
-                        $query->orWhere($field, 'like', $exactTerm);
-                    }
-                }
-            });
-        }
-
-        $orderBy = $isFuzzy ? 'title_relevance' : 'updated_at';
-
-        // Add additional where terms
-        foreach ($wheres as $whereTerm) {
-            $search->where($whereTerm[0], $whereTerm[1], $whereTerm[2]);
-        }
-
-        // Load in relations
-        if ($this->isA('page')) {
-            $search = $search->with('book', 'chapter', 'createdBy', 'updatedBy');
-        } else if ($this->isA('chapter')) {
-            $search = $search->with('book');
-        }
-
-        return $search->orderBy($orderBy, 'desc');
+        return $this->{$this->textField};
     }
+
+    /**
+     * Return a generalised, common raw query that can be 'unioned' across entities.
+     * @return string
+     */
+    public function entityRawQuery(){return '';}
+
+    /**
+     * Get the url of this entity
+     * @param $path
+     * @return string
+     */
+    public function getUrl($path){return '/';}
 
 }
