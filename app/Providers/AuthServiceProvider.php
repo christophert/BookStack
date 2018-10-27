@@ -4,7 +4,7 @@ namespace BookStack\Providers;
 
 use Auth;
 use Laravel\Passport\Passport;
-use BookStack\Services\LdapService;
+use BookStack\Auth\Access\LdapService;
 use Illuminate\Support\ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
