@@ -12,6 +12,7 @@ yarn-error.log
 /public/bower
 /public/build/
 /storage/images
+/storage/oauth*.key
 _ide_helper.php
 /storage/debugbar
 .phpstorm.meta.php

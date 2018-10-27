@@ -1,6 +1,7 @@
 <?php namespace BookStack;
 
 use BookStack\Notifications\ResetPassword;
+use Laravel\Passport\HasApiTokens;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
@@ -10,7 +11,7 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Model implements AuthenticatableContract, CanResetPasswordContract
 {
-    use Authenticatable, CanResetPassword, Notifiable;
+    use HasApiTokens, Authenticatable, CanResetPassword, Notifiable;
 
     /**
      * The database table used by the model.
